@@ -11,11 +11,22 @@ export function parseDiskFilterParam(param: string | null): string[] | null {
   return ids.length ? ids : null;
 }
 
+/** When `filter` is set, order bars to match the comma-separated order in the URL (first id on top). */
 export function filterDisksByIds(
   rows: DiskUsageRow[],
   filter: string[] | null,
 ): DiskUsageRow[] {
   if (!filter?.length) return rows;
-  const want = new Set(filter);
-  return rows.filter((r) => want.has(r.id.toLowerCase()));
+  const byId = new Map(rows.map((r) => [r.id.toLowerCase(), r] as const));
+  const out: DiskUsageRow[] = [];
+  const seen = new Set<string>();
+  for (const id of filter) {
+    if (seen.has(id)) continue;
+    const row = byId.get(id);
+    if (row) {
+      out.push(row);
+      seen.add(id);
+    }
+  }
+  return out;
 }

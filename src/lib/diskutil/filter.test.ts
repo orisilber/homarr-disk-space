@@ -31,4 +31,15 @@ describe("filterDisksByIds", () => {
   it("keeps only listed disk ids", () => {
     expect(filterDisksByIds(SAMPLE_ROWS, ["disk3"])).toEqual([SAMPLE_ROWS[1]]);
   });
+
+  it("orders rows to match the filter list (not API order)", () => {
+    expect(filterDisksByIds(SAMPLE_ROWS, ["disk3", "disk0"])).toEqual([
+      SAMPLE_ROWS[1],
+      SAMPLE_ROWS[0],
+    ]);
+    expect(filterDisksByIds(SAMPLE_ROWS, ["disk0", "disk3"])).toEqual([
+      SAMPLE_ROWS[0],
+      SAMPLE_ROWS[1],
+    ]);
+  });
 });
