@@ -6,6 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:supervised": "node scripts/supervised-start.mjs",
+    "install:mac": "bash scripts/install.sh",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint"
   },
   "dependencies": {
@@ -24,7 +28,6 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/plist": "^3.0.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

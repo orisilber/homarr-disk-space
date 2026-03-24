@@ -12,6 +12,12 @@
 
 # testing
 /coverage
+.vitest/
+
+# IDE / OS
+.idea/
+*.swp
+*.swo
 
 # next.js
 /.next/
@@ -21,6 +27,7 @@
 /build
 
 # misc
+logs/*.log
 .DS_Store
 *.pem
 
