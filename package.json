@@ -2,10 +2,13 @@
   "name": "homarr-disk-space",
   "version": "0.1.0",
   "private": true,
+  "homarr": {
+    "port": 52847
+  },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 52847",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 52847",
     "start:supervised": "node scripts/supervised-start.mjs",
     "install:mac": "bash scripts/install.sh",
     "test": "vitest run",

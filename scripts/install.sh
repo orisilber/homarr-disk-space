@@ -39,6 +39,8 @@ done
 echo "→ repo: ${REPO_ROOT}"
 cd "${REPO_ROOT}"
 
+APP_PORT="$(node -p "const p=require('./package.json').homarr?.port; (typeof p==='number'&&p>0)?p:52847")"
+
 echo "→ npm install"
 npm install
 
@@ -49,6 +51,7 @@ mkdir -p "${REPO_ROOT}/logs"
 
 if [[ "${NO_LAUNCHD}" -eq 1 ]]; then
   echo "→ starting supervised mode (foreground, Ctrl+C to stop)"
+  echo "   http://127.0.0.1:${APP_PORT}"
   exec node "${SUPERVISOR_SCRIPT}"
 fi
 
@@ -68,6 +71,7 @@ SUP_XML="$(xml_escape "${SUPERVISOR_SCRIPT}")"
 PATH_XML="$(xml_escape "${PATH_FOR_LAUNCHD}")"
 OUT_XML="$(xml_escape "${REPO_ROOT}/logs/launchd.out.log")"
 ERR_XML="$(xml_escape "${REPO_ROOT}/logs/launchd.err.log")"
+PORT_XML="$(xml_escape "${APP_PORT}")"
 
 # Unload previous registration if any (modern then legacy).
 launchctl bootout "${DOMAIN}" "${PLIST_DST}" 2>/dev/null || true
@@ -102,6 +106,8 @@ cat >"${PLIST_DST}" <<PLIST
 		<string>${PATH_XML}</string>
 		<key>NODE_ENV</key>
 		<string>production</string>
+		<key>PORT</key>
+		<string>${PORT_XML}</string>
 	</dict>
 </dict>
 </plist>
@@ -119,7 +125,7 @@ fi
 
 echo ""
 echo "Installed. The app will start at login and is running now."
-echo "  • UI:    http://127.0.0.1:3000"
+echo "  • UI:    http://127.0.0.1:${APP_PORT}"
 echo "  • Crash: ${REPO_ROOT}/logs/crash.log"
 echo "  • Stdout: ${REPO_ROOT}/logs/launchd.out.log"
 echo ""

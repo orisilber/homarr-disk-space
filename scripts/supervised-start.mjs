@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFileSync } from "node:fs";
 import { appendFile, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,6 +9,19 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const logDir = join(root, "logs");
 const crashLog = join(logDir, "crash.log");
 const backoffMs = 3000;
+
+/** IANA dynamic port (49152–65535); override with PORT= env. */
+function resolvePort() {
+  if (process.env.PORT) return process.env.PORT;
+  try {
+    const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+    const p = pkg.homarr?.port;
+    if (typeof p === "number" && p >= 1024 && p <= 65535) return String(p);
+  } catch {
+    /* ignore */
+  }
+  return "52847";
+}
 
 function stamp() {
   return new Date().toISOString();
@@ -20,11 +34,12 @@ async function logCrash(message) {
 
 function runOnce() {
   return new Promise((resolve) => {
+    const port = resolvePort();
     const nextBin = join(root, "node_modules", ".bin", "next");
-    const child = spawn(nextBin, ["start"], {
+    const child = spawn(nextBin, ["start", "-p", port], {
       cwd: root,
       stdio: "inherit",
-      env: { ...process.env },
+      env: { ...process.env, PORT: port },
     });
 
     child.on("error", async (err) => {
