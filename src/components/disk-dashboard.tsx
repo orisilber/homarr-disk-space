@@ -71,7 +71,7 @@ export function DiskDashboard() {
         return (
           <div
             key={d.id}
-            className="relative h-[4.25rem] w-full overflow-hidden rounded-lg bg-muted"
+            className="relative h-[3.25rem] w-full overflow-hidden rounded-lg bg-muted"
           >
             <div
               className={cn(
@@ -80,11 +80,14 @@ export function DiskDashboard() {
               )}
               style={{ width: `${fillPct}%` }}
             />
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-3 text-center">
-              <span className="text-sm font-medium leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">
+            <div className="pointer-events-none absolute inset-0 flex min-h-0 flex-col justify-center gap-[6px] px-2.5 py-1">
+              <span
+                className="min-w-0 w-full truncate text-center text-xs font-medium leading-none text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]"
+                title={volumeName}
+              >
                 {volumeName}
               </span>
-              <span className="text-xs font-medium tabular-nums text-white/95 [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">
+              <span className="text-[0.6875rem] font-medium leading-none tabular-nums text-white/95 [text-shadow:0_1px_2px_rgba(0,0,0,0.9)] text-center">
                 {taken} / {cap} GB
               </span>
             </div>
