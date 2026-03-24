@@ -41,3 +41,36 @@ export function buildPartitionToWholeDisk(
   }
   return map;
 }
+
+/** Partition device IDs (e.g. disk0s1) directly under the given whole disk. */
+export function getPartitionIdsForWholeDisk(
+  parsed: DiskListPhysicalParsed,
+  wholeId: string,
+): string[] {
+  const top = parsed.allDisksAndPartitions;
+  if (!Array.isArray(top)) return [];
+  for (const entry of top) {
+    if (!entry || typeof entry !== "object") continue;
+    const disk = entry as Record<string, unknown>;
+    if (disk.DeviceIdentifier !== wholeId) continue;
+    const parts = disk.Partitions;
+    if (!Array.isArray(parts)) return [];
+    const ids: string[] = [];
+    for (const p of parts) {
+      if (!p || typeof p !== "object") continue;
+      const pid = (p as Record<string, unknown>).DeviceIdentifier;
+      if (typeof pid === "string") ids.push(pid);
+    }
+    return ids;
+  }
+  return [];
+}
+
+export function getAllPartitionIds(parsed: DiskListPhysicalParsed): string[] {
+  const out: string[] = [];
+  for (const wholeId of parsed.wholeDisks) {
+    out.push(...getPartitionIdsForWholeDisk(parsed, wholeId));
+  }
+  return out;
+}
+

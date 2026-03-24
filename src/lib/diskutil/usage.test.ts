@@ -42,6 +42,8 @@ const INFO_DISK0 = `<?xml version="1.0" encoding="UTF-8"?>
   <string>disk0</string>
   <key>TotalSize</key>
   <integer>1000</integer>
+  <key>IORegistryEntryName</key>
+  <string>InternalIO</string>
   <key>MediaName</key>
   <string>Internal SSD</string>
 </dict>
@@ -57,8 +59,67 @@ const INFO_DISK9 = `<?xml version="1.0" encoding="UTF-8"?>
   <integer>2000</integer>
   <key>FreeSpace</key>
   <integer>500</integer>
+  <key>IORegistryEntryName</key>
+  <string>USBIO</string>
   <key>MediaName</key>
   <string>USB Drive</string>
+</dict>
+</plist>`;
+
+const LIST_EXTERNAL = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>WholeDisks</key>
+  <array>
+    <string>disk8</string>
+  </array>
+  <key>AllDisksAndPartitions</key>
+  <array>
+    <dict>
+      <key>DeviceIdentifier</key>
+      <string>disk8</string>
+      <key>Partitions</key>
+      <array>
+        <dict>
+          <key>DeviceIdentifier</key>
+          <string>disk8s1</string>
+          <key>Size</key>
+          <integer>10000</integer>
+        </dict>
+      </array>
+      <key>Size</key>
+      <integer>10000</integer>
+    </dict>
+  </array>
+</dict>
+</plist>`;
+
+const INFO_DISK8_WHOLE = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>DeviceIdentifier</key>
+  <string>disk8</string>
+  <key>TotalSize</key>
+  <integer>10000</integer>
+  <key>FreeSpace</key>
+  <integer>0</integer>
+  <key>IORegistryEntryName</key>
+  <string>ExternalSSD</string>
+</dict>
+</plist>`;
+
+const INFO_DISK8S1 = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>DeviceIdentifier</key>
+  <string>disk8s1</string>
+  <key>TotalSize</key>
+  <integer>10000</integer>
+  <key>VolumeFreeSpace</key>
+  <integer>3000</integer>
 </dict>
 </plist>`;
 
@@ -76,16 +137,17 @@ describe("buildDiskUsageRows", () => {
       disk9: INFO_DISK9,
     };
     const rows = buildDiskUsageRows({
-      wholeDisks: list.wholeDisks,
+      diskList: list,
       partitionToWholeDisk: partMap,
       apfsContainers: apfs,
       diskInfoPlists: info,
+      partitionInfoPlists: {},
     });
 
     const disk0 = rows.find((r) => r.id === "disk0");
     expect(disk0).toMatchObject({
       id: "disk0",
-      label: "disk0 — Internal SSD",
+      label: "disk0 — InternalIO",
       totalBytes: 1000,
       usedBytes: 550,
     });
@@ -93,9 +155,29 @@ describe("buildDiskUsageRows", () => {
     const disk9 = rows.find((r) => r.id === "disk9");
     expect(disk9).toMatchObject({
       id: "disk9",
-      label: "disk9 — USB Drive",
+      label: "disk9 — USBIO",
       totalBytes: 2000,
       usedBytes: 1500,
+    });
+  });
+
+  it("uses partition VolumeFreeSpace when whole-disk stats have no used data", () => {
+    const list = parseDiskListPhysicalPlist(LIST_EXTERNAL);
+    const partMap = buildPartitionToWholeDisk(list);
+    const rows = buildDiskUsageRows({
+      diskList: list,
+      partitionToWholeDisk: partMap,
+      apfsContainers: [],
+      diskInfoPlists: { disk8: INFO_DISK8_WHOLE },
+      partitionInfoPlists: { disk8s1: INFO_DISK8S1 },
+    });
+
+    const disk8 = rows.find((r) => r.id === "disk8");
+    expect(disk8).toMatchObject({
+      id: "disk8",
+      label: "disk8 — ExternalSSD",
+      totalBytes: 10000,
+      usedBytes: 7000,
     });
   });
 });

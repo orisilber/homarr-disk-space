@@ -2,7 +2,11 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 import { parseApfsListPlist } from "./apfs";
-import { buildPartitionToWholeDisk, parseDiskListPhysicalPlist } from "./list";
+import {
+  buildPartitionToWholeDisk,
+  getAllPartitionIds,
+  parseDiskListPhysicalPlist,
+} from "./list";
 import { buildDiskUsageRows } from "./usage";
 
 const execFileAsync = promisify(execFile);
@@ -38,10 +42,24 @@ export async function gatherDiskUsageFromDiskutil() {
     }),
   );
 
+  const partitionInfoPlists: Record<string, string> = {};
+  const partitionIds = getAllPartitionIds(list);
+  await Promise.all(
+    partitionIds.map(async (pid) => {
+      try {
+        const r = await execFileAsync("diskutil", ["info", "-plist", pid], opts);
+        partitionInfoPlists[pid] = r.stdout;
+      } catch {
+        partitionInfoPlists[pid] = "";
+      }
+    }),
+  );
+
   return buildDiskUsageRows({
-    wholeDisks: list.wholeDisks,
+    diskList: list,
     partitionToWholeDisk,
     apfsContainers,
     diskInfoPlists,
+    partitionInfoPlists,
   });
 }
